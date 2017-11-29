@@ -276,4 +276,23 @@ impl Sample {
     pub fn is_audio(&self) -> bool {
         return self.info1 == [255, 255, 255, 255];
     }
+
+    /// Reads the metadata in this Sample to determine whether this sample contains video.
+    pub fn is_video(&self) -> bool {
+        return !self.is_audio();
+    }
+
+    /// Returns Some(true) if this frame is a keyframe. This is only relevant for video samples.
+    /// Cinepak implements interframe compression; keyframes contain the entire frame,
+    /// while subsequent non-key frames update only portions of the image.
+    ///
+    /// If this sample isn't video, returns None.
+    pub fn is_keyframe(&self) -> Option<bool> {
+        if !self.is_video() {
+            return None;
+        }
+
+        let byte = uint32_from_bytes(self.info1);
+        return Some((byte & (1 << 31)) == 0);
+    }
 }
